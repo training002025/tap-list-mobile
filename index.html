@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tap List</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ink: #14161a;
+      --muted: #626974;
+      --line: #d8dde6;
+      --paper: #fbfcfe;
+      --accent: #176b87;
+      --accent-strong: #0f556d;
+      --warm: #f7b267;
+      --green: #4f8a5f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f4f7fb 0%, #eaf0f5 100%);
+      color: var(--ink);
+    }
+
+    main {
+      width: min(100%, 480px);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+    }
+
+    header {
+      padding: 10px 0 18px;
+    }
+
+    .date {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    h1 {
+      margin: 4px 0 0;
+      font-size: 2.1rem;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 48px;
+      gap: 10px;
+      margin: 4px 0 18px;
+    }
+
+    input, button {
+      border: 1px solid var(--line);
+      font: inherit;
+    }
+
+    input {
+      min-width: 0;
+      min-height: 48px;
+      border-radius: 8px;
+      padding: 0 14px;
+      background: #ffffff;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    button {
+      min-height: 48px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font-size: 1.35rem;
+      font-weight: 800;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      background: var(--accent-strong);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #ffffff;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 12px 10px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stat:last-child {
+      border-right: 0;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    li {
+      min-height: 56px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      display: grid;
+      grid-template-columns: 38px 1fr 38px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .check, .delete {
+      width: 38px;
+      height: 38px;
+      min-height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      background: #eef5f7;
+      color: var(--accent);
+    }
+
+    .delete {
+      background: #fff5e9;
+      color: #9a5a13;
+    }
+
+    .task {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-weight: 680;
+    }
+
+    li.done {
+      border-color: #cbdccf;
+      background: #f5faf6;
+    }
+
+    li.done .task {
+      color: var(--green);
+      text-decoration: line-through;
+    }
+
+    .empty {
+      margin: auto 0;
+      border: 1px dashed #b9c2cd;
+      border-radius: 8px;
+      padding: 28px 18px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 650;
+      background: #ffffff;
+    }
+
+    footer {
+      margin-top: auto;
+      padding-top: 18px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="date" id="today"></div>
+      <h1>Tap List</h1>
+    </header>
+
+    <form id="form">
+      <input id="input" autocomplete="off" maxlength="80" placeholder="Add a quick thing">
+      <button aria-label="Add task" title="Add task">+</button>
+    </form>
+
+    <section class="stats" aria-label="Task stats">
+      <div class="stat"><b id="total">0</b><span>Total</span></div>
+      <div class="stat"><b id="done">0</b><span>Done</span></div>
+      <div class="stat"><b id="left">0</b><span>Left</span></div>
+    </section>
+
+    <ul id="list" aria-label="Tasks"></ul>
+    <div class="empty" id="empty">Add your first task.</div>
+    <footer>Saved on this device</footer>
+  </main>
+
+  <script>
+    const key = "tap-list.tasks.v1";
+    const form = document.querySelector("#form");
+    const input = document.querySelector("#input");
+    const list = document.querySelector("#list");
+    const empty = document.querySelector("#empty");
+    const total = document.querySelector("#total");
+    const done = document.querySelector("#done");
+    const left = document.querySelector("#left");
+    let tasks = JSON.parse(localStorage.getItem(key) || "[]");
+
+    document.querySelector("#today").textContent = new Intl.DateTimeFormat(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric"
+    }).format(new Date());
+
+    function save() {
+      localStorage.setItem(key, JSON.stringify(tasks));
+    }
+
+    function render() {
+      list.innerHTML = "";
+      tasks.forEach((task) => {
+        const item = document.createElement("li");
+        item.className = task.done ? "done" : "";
+
+        const check = document.createElement("button");
+        check.className = "check";
+        check.type = "button";
+        check.title = task.done ? "Mark incomplete" : "Mark complete";
+        check.setAttribute("aria-label", check.title);
+        check.textContent = task.done ? "✓" : "";
+        check.addEventListener("click", () => {
+          task.done = !task.done;
+          save();
+          render();
+        });
+
+        const label = document.createElement("div");
+        label.className = "task";
+        label.textContent = task.text;
+
+        const remove = document.createElement("button");
+        remove.className = "delete";
+        remove.type = "button";
+        remove.title = "Delete task";
+        remove.setAttribute("aria-label", "Delete task");
+        remove.textContent = "×";
+        remove.addEventListener("click", () => {
+          tasks = tasks.filter((candidate) => candidate.id !== task.id);
+          save();
+          render();
+        });
+
+        item.append(check, label, remove);
+        list.append(item);
+      });
+
+      const completed = tasks.filter((task) => task.done).length;
+      total.textContent = tasks.length;
+      done.textContent = completed;
+      left.textContent = tasks.length - completed;
+      empty.hidden = tasks.length > 0;
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.unshift({ id: crypto.randomUUID(), text, done: false });
+      input.value = "";
+      save();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
